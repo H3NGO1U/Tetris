@@ -102,12 +102,13 @@ public class Block {
 
     }
     public int getX(int i,int j){
-        if(i>=rows||j>=cols) return -1;
+        if(i>=rows||j>=cols || shape[i][j]==null) return -1;
         return (int)shape[i][j].getX();
     }
 
     public int getY(int i,int j){
-        if(i>=rows||j>=cols) return -1;
+        if(i>=rows||j>=cols || shape[i][j]==null) return -1;
+
         return (int)shape[i][j].getY();
     }
     public boolean checkNull(int i, int j){
@@ -121,7 +122,7 @@ public class Block {
     public int length(){
         return cols;
     }
-    public int raws(){
+    public int rows(){
         return rows;
     }
 

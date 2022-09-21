@@ -1,6 +1,6 @@
 public class Main {
 
     public static void main(String[] args) {
-        new StartGame().setVisible(true);
+        new GameFrame().setVisible(true);
     }
 }

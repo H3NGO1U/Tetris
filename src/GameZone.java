@@ -1,11 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Random;
-
+enum SHAPES{
+    RED, YELLOW, PURPLE, BLUE, ORANGE, GREEN, CYAN
+}
 public class GameZone extends JPanel {
     final int BOARD_WIDTH = 300;
     final int BOARD_HEIGHT = 540;
@@ -13,7 +13,6 @@ public class GameZone extends JPanel {
     final int GAME_UNITS_X = BOARD_WIDTH / UNIT_SIZE;
     final int GAME_UNITS_Y = BOARD_HEIGHT / UNIT_SIZE;
     final int MIDDLE = 120;
-
     Random random;
 
 
@@ -33,17 +32,15 @@ public class GameZone extends JPanel {
         this.setOpaque(true);
         this.setFocusable(true);
         this.addKeyListener(new MyKeyAdapter());
-
-
         chooseShape();
         createShape(curShape);
-        colors = new Color[GAME_UNITS_Y][GAME_UNITS_X];
+        colors = new Color[GAME_UNITS_X][GAME_UNITS_Y];
         curLast = new int[GAME_UNITS_X];
 
         for (int i = 0; i < GAME_UNITS_X; i++) {
             curLast[i] = BOARD_HEIGHT;
         }
-
+System.out.println(colors.length+" "+colors[0].length);
     }
 
     public void paintComponent(Graphics g) {
@@ -58,8 +55,8 @@ public class GameZone extends JPanel {
         for (int k = 0; k < BOARD_HEIGHT; k += UNIT_SIZE) {
             for (int m = 0; m < BOARD_WIDTH; m += UNIT_SIZE) {
                 int yCor = k / UNIT_SIZE, xCor = m / UNIT_SIZE;
-                if (colors[yCor][xCor] != null) {
-                    g.setColor(colors[yCor][xCor]);
+                if (colors[xCor][yCor] != null) {
+                    g.setColor(colors[xCor][yCor]);
                     g.fillRect(m, k, UNIT_SIZE, UNIT_SIZE);
                     g2D.setStroke(new BasicStroke(2));
                     g.setColor(Color.black);
@@ -70,7 +67,7 @@ public class GameZone extends JPanel {
         }
 
 
-        for (int i = 0; i < shape.raws(); i++)
+        for (int i = 0; i < shape.rows(); i++)
             for (int j = 0; j < shape.length(); j++)
                 if (shape.checkNull(i, j)) {
                     g.setColor(shape.getColor());
@@ -82,7 +79,17 @@ public class GameZone extends JPanel {
                             UNIT_SIZE, UNIT_SIZE);
                 }
     }
-
+public void printer()
+{
+    for(int i = 0; i< colors.length; i++) {
+        System.out.println();
+        for (int j = 0; j < colors[0].length; j++) {
+            if (colors[i][j] != null)
+                System.out.print("* ");
+            else System.out.print("- ");
+        }
+    }
+}
 
     public void createShape(int curShape) {
         shape = new Block(curShape);
@@ -98,10 +105,10 @@ public class GameZone extends JPanel {
             if (colors[0][i] != null) return false;
         return true;
     }
-
+/* check if the shape has reached the bottom*/
     public boolean checkLast() {
 
-        for (int i = 0; i < shape.raws(); i++)
+        for (int i = 0; i < shape.rows(); i++)
             for (int j = 0; j < shape.length(); j++)
                 if (shape.checkNull(i, j))
                     if (curLast[shape.getX(i, j) / UNIT_SIZE] - UNIT_SIZE == shape.getY(i, j)) {
@@ -113,10 +120,10 @@ public class GameZone extends JPanel {
     }
 
     public void build() {
-        for (int i = 0; i < shape.raws(); i++)
+        for (int i = 0; i < shape.rows(); i++)
             for (int j = 0; j < shape.length(); j++)
                 if (shape.checkNull(i, j)) {
-                    colors[shape.getY(i, j) / UNIT_SIZE][shape.getX(i, j) / UNIT_SIZE] = shape.getColor();
+                    colors[shape.getX(i, j) / UNIT_SIZE][shape.getY(i, j) / UNIT_SIZE] = shape.getColor();
                     if (shape.getY(i, j) < curLast[shape.getX(i, j) / UNIT_SIZE])
                         curLast[shape.getX(i, j) / UNIT_SIZE] = shape.getY(i, j);
                 }
@@ -130,7 +137,7 @@ public class GameZone extends JPanel {
         int check = 0;
         for (int row = 0; row < BOARD_HEIGHT; row += UNIT_SIZE) {
             for (int i = 0; i < BOARD_WIDTH; i += UNIT_SIZE) {
-                if (colors[row / UNIT_SIZE][i / UNIT_SIZE] != null) check++;
+                if (colors[i / UNIT_SIZE][row / UNIT_SIZE] != null) check++;
             }
             if (check == GAME_UNITS_X) cleanRow(row / UNIT_SIZE);
             check = 0;
@@ -139,21 +146,84 @@ public class GameZone extends JPanel {
 
     public void cleanRow(int row) {
         for (int i = 0; i < GAME_UNITS_X; i++)
-            colors[row][i] = null;
-        int counter = 0;
+            colors[i][row] = null;
+        int counter=0;
         for (int j = row; j > 0 && counter < GAME_UNITS_X; j--) {
             counter = 0;
             for (int k = 0; k < GAME_UNITS_X; k++) {
-                if (colors[j - 1][k] == null) counter++;
-                colors[j][k] = colors[j - 1][k];
+                if (colors[k][j - 1] == null) counter++;
+                colors[k][j] = colors[k][j - 1];
             }
         }
         for (int i = 0; i < GAME_UNITS_X; i++)
             curLast[i] += UNIT_SIZE;
     }
 
+    //rotate the shape
     public void changeMode() {
-        boolean pivotIsMoved = false;
+        switch(curShape){
+            case(0): //red
+                break;
+            case(1): //yellow
+                switch(mode){
+                        case(1):
+                            updatePoint(1,1); //the rightest point
+                            if(curX==0) curX+=UNIT_SIZE;
+                            else if(colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null){ //there's a shape there
+                                mode = 4; //return to previous state
+                                break;
+                            }
+                            //else
+                            shape.setLocation(1,1, curX, curY);
+                            shape.setLocation(0,1, curX, curY+UNIT_SIZE);
+                            shape.setLocation(1,0, curX-UNIT_SIZE, curY);
+                            shape.setLocation(1,2, curX+UNIT_SIZE, curY);
+                            break;
+                        case (2):
+                            updatePoint(1,1);
+                            if(curY==BOARD_HEIGHT || colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){ //can't perform - too low or occuiped
+                                mode = 1;
+                                break;
+                            }
+                            //else
+                            shape.setLocation(0,1, curX-UNIT_SIZE, curY);
+                            shape.setLocation(1,0, curX, curY-UNIT_SIZE);
+                            shape.setLocation(1,2, curX, curY+UNIT_SIZE);
+                            break;
+
+                    case(3):
+                        updatePoint(1,1);
+                        if(curX==BOARD_WIDTH-UNIT_SIZE) { //if touches the wall
+                            curX -= UNIT_SIZE;
+                        }
+                        else if(colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null){
+                            mode = 2;
+                            break;
+                        }
+                        //else
+                        shape.setLocation(1,1,curX,curY);
+                        shape.setLocation(0,1, curX, curY-UNIT_SIZE);
+                        shape.setLocation(1,0, curX+UNIT_SIZE, curY);
+                        shape.setLocation(1,2, curX-UNIT_SIZE, curY);
+                        break;
+                    case(4):
+                        updatePoint(1,1);
+                        if(colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){
+                            mode = 3;
+                            break;
+                        }
+                        //else
+                        shape.setLocation(0,1, curX+UNIT_SIZE, curY);
+                        shape.setLocation(1,0, curX, curY+UNIT_SIZE);
+                        shape.setLocation(1,2, curX, curY-UNIT_SIZE);
+                        break;
+                }
+            break;
+
+        }
+
+        /*
+        boolean pivotIsMoved = false; //the pivot should not be null
         if (shape.checkNull(0, 0))
             updatePoint(0, 0);
         else
@@ -162,13 +232,17 @@ public class GameZone extends JPanel {
             pivotIsMoved = true;
                 switch(mode){
                     case 1:
-                        if(pivotIsMoved) curX -= UNIT_SIZE;
-
+                        if(pivotIsMoved && curX!=0)
+                            curX -= UNIT_SIZE;
                         curY-=(shape.raws()-1)*UNIT_SIZE;
                         break;
-                    case 2: if(pivotIsMoved) curY -= UNIT_SIZE;
+                    case 2:
+                        if(pivotIsMoved)
+                            curY -= UNIT_SIZE;
                         break;
-                    case 3: if(pivotIsMoved) curX += UNIT_SIZE;
+                    case 3:
+                        if(pivotIsMoved && curX!=BOARD_WIDTH)
+                            curX += UNIT_SIZE;
 
                         curY+= (shape.length()-1)*UNIT_SIZE;
                         break;
@@ -214,21 +288,19 @@ public class GameZone extends JPanel {
                             }
                         break;
                 }
+                */
         }
 
 
                 public void move () {
-                for (int i = 0; i < shape.raws(); i++)
+                for (int i = 0; i < shape.rows(); i++)
                     for (int j = 0; j < shape.length(); j++)
                         if (shape.checkNull(i, j))
                             shape.setLocation(i, j, shape.getX(i, j),
                                     shape.getY(i, j) + UNIT_SIZE);
-
-
                 repaint();
-
-
             }
+
 
             public class MyKeyAdapter extends KeyAdapter {
                 @Override
@@ -236,19 +308,20 @@ public class GameZone extends JPanel {
                     switch (e.getKeyCode()) {
                         case KeyEvent.VK_LEFT:
                             moveLeft = true;
-                            for (int i = 0; i < shape.raws() && moveLeft; i++)
+
+                            for (int i = 0; i < shape.rows() && moveLeft; i++)
                                 for (int j = 0; j < shape.length() && moveLeft; j++) {
                                     if (shape.checkNull(i, j)) {
+
                                         if (shape.getX(i, j) == 0 || colors[shape.getX(i, j) / UNIT_SIZE][shape.getY(i, j) / UNIT_SIZE] != null
                                                 && !shape.checkNull(i, j - 1)) {
                                             moveLeft = false;
                                         }
-
                                     }
 
                                 }
                             if (moveLeft)
-                                for (int i = 0; i < shape.raws(); i++)
+                                for (int i = 0; i < shape.rows(); i++)
                                     for (int j = 0; j < shape.length(); j++) {
                                         if (shape.checkNull(i, j))
                                             shape.setLocation(i, j, shape.getX(i, j) - UNIT_SIZE,
@@ -258,7 +331,7 @@ public class GameZone extends JPanel {
 
                         case KeyEvent.VK_RIGHT:
                             moveRight = true;
-                            for (int i = 0; i < shape.raws() && moveRight; i++)
+                            for (int i = 0; i < shape.rows() && moveRight; i++)
                                 for (int j = 0; j < shape.length() && moveRight; j++) {
                                     if (shape.checkNull(i, j)) {
                                         if (shape.getX(i, j) + UNIT_SIZE == BOARD_WIDTH
@@ -268,7 +341,7 @@ public class GameZone extends JPanel {
                                     }
                                 }
                             if (moveRight)
-                                for (int i = 0; i < shape.raws(); i++)
+                                for (int i = 0; i < shape.rows(); i++)
                                     for (int j = 0; j < shape.length(); j++)
                                         if (shape.checkNull(i, j))
                                             shape.setLocation(i, j, shape.getX(i, j) + UNIT_SIZE,
@@ -292,7 +365,7 @@ public class GameZone extends JPanel {
                             changeMode();
                             break;
                         case KeyEvent.VK_DOWN:
-                            for (int i = 0; i < shape.raws(); i++)
+                            for (int i = 0; i < shape.rows(); i++)
                                 for (int j = 0; j < shape.length(); j++)
                                     if (shape.checkNull(i, j))
                                         shape.setLocation(i, j, shape.getX(i, j),
