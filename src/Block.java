@@ -29,7 +29,7 @@ public class Block {
                 for (int i = 0; i < rows; i++)
                     for (int j = 0; j < cols; j++) {
                         color = Color.YELLOW;
-                        if (i == 0 && j == 0 || i == 0 && j == 2) continue;
+                        if (i == 1 && j == 0 || i == 1 && j == 2) continue;
                         shape[i][j] = new Point(MIDDLE + j * UNIT_SIZE,
                                  i * UNIT_SIZE);
                     }

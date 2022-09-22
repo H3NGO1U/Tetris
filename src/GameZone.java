@@ -12,7 +12,7 @@ public class GameZone extends JPanel {
     final int UNIT_SIZE = 20;
     final int GAME_UNITS_X = BOARD_WIDTH / UNIT_SIZE;
     final int GAME_UNITS_Y = BOARD_HEIGHT / UNIT_SIZE;
-    final int MIDDLE = 120;
+    final int MIDDLE = BOARD_WIDTH/2;
     Random random;
 
 
@@ -25,13 +25,15 @@ public class GameZone extends JPanel {
     Block shape;
     int[] curLast;
     Color[][] colors;
-
+    Score score = new Score();
     GameZone() {
+
         random = new Random();
         this.setLayout(null);
         this.setOpaque(true);
         this.setFocusable(true);
         this.addKeyListener(new MyKeyAdapter());
+        this.setBorder(BorderFactory.createLineBorder(Color.black));
         chooseShape();
         createShape(curShape);
         colors = new Color[GAME_UNITS_X][GAME_UNITS_Y];
@@ -46,7 +48,6 @@ System.out.println(colors.length+" "+colors[0].length);
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         draw(g);
-
     }
 
     public void draw(Graphics g) {
@@ -93,6 +94,7 @@ public void printer()
 
     public void createShape(int curShape) {
         shape = new Block(curShape);
+        mode = 1;
         repaint();
     }
 
@@ -107,7 +109,6 @@ public void printer()
     }
 /* check if the shape has reached the bottom*/
     public boolean checkLast() {
-
         for (int i = 0; i < shape.rows(); i++)
             for (int j = 0; j < shape.length(); j++)
                 if (shape.checkNull(i, j))
@@ -132,14 +133,17 @@ public void printer()
 
 
     }
-
+/*check all the rows if they are full*/
     public void checkRow() {
         int check = 0;
         for (int row = 0; row < BOARD_HEIGHT; row += UNIT_SIZE) {
             for (int i = 0; i < BOARD_WIDTH; i += UNIT_SIZE) {
                 if (colors[i / UNIT_SIZE][row / UNIT_SIZE] != null) check++;
             }
-            if (check == GAME_UNITS_X) cleanRow(row / UNIT_SIZE);
+            if (check == GAME_UNITS_X){
+                cleanRow(row / UNIT_SIZE);
+                score.addScore();
+            }
             check = 0;
         }
     }
@@ -161,134 +165,247 @@ public void printer()
 
     //rotate the shape
     public void changeMode() {
+        updatePoint(0,1);
         switch(curShape){
             case(0): //red
                 break;
             case(1): //yellow
                 switch(mode){
                         case(1):
-                            updatePoint(1,1); //the rightest point
-                            if(curX==0) curX+=UNIT_SIZE;
-                            else if(colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null){ //there's a shape there
+                            updatePoint(0,1); //the rightest point
+                            if(curX==0 || colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null){ //there's a shape there
                                 mode = 4; //return to previous state
                                 break;
                             }
                             //else
-                            shape.setLocation(1,1, curX, curY);
-                            shape.setLocation(0,1, curX, curY+UNIT_SIZE);
-                            shape.setLocation(1,0, curX-UNIT_SIZE, curY);
-                            shape.setLocation(1,2, curX+UNIT_SIZE, curY);
+                            shape.setLocation(1,1, curX, curY+UNIT_SIZE);
+                            shape.setLocation(0,0, curX-UNIT_SIZE, curY);
+                            shape.setLocation(0,2, curX+UNIT_SIZE, curY);
                             break;
                         case (2):
-                            updatePoint(1,1);
-                            if(curY==BOARD_HEIGHT || colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){ //can't perform - too low or occuiped
+                            if(curY==BOARD_HEIGHT || colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){ //
                                 mode = 1;
                                 break;
                             }
                             //else
-                            shape.setLocation(0,1, curX-UNIT_SIZE, curY);
-                            shape.setLocation(1,0, curX, curY-UNIT_SIZE);
-                            shape.setLocation(1,2, curX, curY+UNIT_SIZE);
+                            shape.setLocation(1,1, curX-UNIT_SIZE, curY);
+                            shape.setLocation(0,0, curX, curY-UNIT_SIZE);
+                            shape.setLocation(0,2, curX, curY+UNIT_SIZE);
                             break;
 
                     case(3):
-                        updatePoint(1,1);
-                        if(curX==BOARD_WIDTH-UNIT_SIZE) { //if touches the wall
-                            curX -= UNIT_SIZE;
-                        }
-                        else if(colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null){
+                        if(curX==BOARD_WIDTH-UNIT_SIZE || colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null){
                             mode = 2;
                             break;
                         }
                         //else
-                        shape.setLocation(1,1,curX,curY);
-                        shape.setLocation(0,1, curX, curY-UNIT_SIZE);
-                        shape.setLocation(1,0, curX+UNIT_SIZE, curY);
-                        shape.setLocation(1,2, curX-UNIT_SIZE, curY);
+                        shape.setLocation(1,1,curX,curY-UNIT_SIZE);
+                        shape.setLocation(0,0, curX+UNIT_SIZE, curY);
+                        shape.setLocation(0,2, curX-UNIT_SIZE, curY);
                         break;
                     case(4):
-                        updatePoint(1,1);
-                        if(colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){
+                        if(curY==BOARD_HEIGHT-UNIT_SIZE || colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){
                             mode = 3;
                             break;
                         }
                         //else
-                        shape.setLocation(0,1, curX+UNIT_SIZE, curY);
-                        shape.setLocation(1,0, curX, curY+UNIT_SIZE);
-                        shape.setLocation(1,2, curX, curY-UNIT_SIZE);
+                        shape.setLocation(1,1, curX+UNIT_SIZE, curY);
+                        shape.setLocation(0,0, curX, curY+UNIT_SIZE);
+                        shape.setLocation(0,2, curX, curY-UNIT_SIZE);
                         break;
                 }
             break;
-
-        }
-
-        /*
-        boolean pivotIsMoved = false; //the pivot should not be null
-        if (shape.checkNull(0, 0))
-            updatePoint(0, 0);
-        else
-            updatePoint(0, 1);
-        if(curShape == 1 || curShape == 6)
-            pivotIsMoved = true;
+            case(2): //purple
                 switch(mode){
-                    case 1:
-                        if(pivotIsMoved && curX!=0)
-                            curX -= UNIT_SIZE;
-                        curY-=(shape.raws()-1)*UNIT_SIZE;
+                    case(1):
+                        if(curX==0 || colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null
+                                ||colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null
+                                ||colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null){ //check space from left
+                            mode = 4;
+                            break;
+                        }
+                        //else
+                        shape.setLocation(0,0, curX-UNIT_SIZE, curY);
+                        shape.setLocation(0,2, curX+UNIT_SIZE, curY);
+                        shape.setLocation(1,2, curX+UNIT_SIZE, curY+UNIT_SIZE);
                         break;
-                    case 2:
-                        if(pivotIsMoved)
-                            curY -= UNIT_SIZE;
+                    case(2):
+                        if(curY==0|| colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null
+                                ||colors[(curX)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null
+                                ||colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null) {//check one space from top and two spaces bottom-left
+                            mode= 1;
+                            break;
+                        }
+                        shape.setLocation(0,0, curX, curY-UNIT_SIZE);
+                        shape.setLocation(0,2, curX, curY+UNIT_SIZE);
+                        shape.setLocation(1,2, curX-UNIT_SIZE, curY+UNIT_SIZE);
                         break;
-                    case 3:
-                        if(pivotIsMoved && curX!=BOARD_WIDTH)
-                            curX += UNIT_SIZE;
-
-                        curY+= (shape.length()-1)*UNIT_SIZE;
+                    case(3):
+                        if(curX>=BOARD_WIDTH-UNIT_SIZE || colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null
+                                ||colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null
+                                ||colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){ //check two spaces from left
+                            mode = 2;
+                            break;
+                        }
+                        //else
+                        shape.setLocation(0,0, curX+UNIT_SIZE, curY);
+                        shape.setLocation(0,2, curX-UNIT_SIZE, curY);
+                        shape.setLocation(1,2, curX-UNIT_SIZE, curY-UNIT_SIZE);
                         break;
-                    default: if(pivotIsMoved) curY += UNIT_SIZE;
-
-                        curY-=(shape.raws()-1)*UNIT_SIZE;
-                }
-
-
-                switch (mode) {
-                    case 1:
-                        for (int i = 0; i < shape.raws(); i++)
-                            for (int j = 0; j < shape.length(); j++) {
-                                if (shape.checkNull(i, j)) {
-                                    shape.setLocation(i, j, curX + j * UNIT_SIZE, curY + i * UNIT_SIZE);
-                                }
-                            }
-                        break;
-                    case 2:
-                        for (int i = 0; i < shape.raws(); i++)
-                            for (int j = 0; j < shape.length(); j++) {
-                                if (shape.checkNull(i, j)) {
-                                    shape.setLocation(i, j, curX - i * UNIT_SIZE, curY + j * UNIT_SIZE);
-                                }
-                            }
-                        break;
-                    case 3:
-
-                        for (int i = 0; i < shape.raws(); i++)
-                            for (int j = 0; j < shape.length(); j++) {
-                                if (shape.checkNull(i, j)) {
-                                    shape.setLocation(i, j, curX - j * UNIT_SIZE, curY - i * UNIT_SIZE);
-                                }
-                            }
-                        break;
-                    case 4:
-
-                        for (int i = 0; i < shape.raws(); i++)
-                            for (int j = 0; j < shape.length(); j++) {
-                                if (shape.checkNull(i, j)) {
-                                    shape.setLocation(i, j, curX + i * UNIT_SIZE, curY - j * UNIT_SIZE);
-                                }
-                            }
+                    case(4):
+                        if(curY>=BOARD_HEIGHT-UNIT_SIZE|| colors[(curX)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null
+                                ||colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null
+                                ||colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null) {//check two spaces from top)
+                            mode= 3;
+                            break;
+                        }
+                        shape.setLocation(0,0, curX, curY+UNIT_SIZE);
+                        shape.setLocation(0,2, curX, curY-UNIT_SIZE);
+                        shape.setLocation(1,2, curX+UNIT_SIZE, curY-UNIT_SIZE);
                         break;
                 }
-                */
+            break;
+            case(3)://blue
+                switch(mode){
+                        case(1):
+                            if(curX==0 || colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null//(0,0)
+                                    ||colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null//(0,2)
+                                    ||colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null){ //(1,0)
+                                mode = 4;
+                                break;
+                            }
+                            //else
+                            shape.setLocation(0,0, curX-UNIT_SIZE, curY);
+                            shape.setLocation(0,2, curX+UNIT_SIZE, curY);
+                            shape.setLocation(1,0, curX-UNIT_SIZE, curY+UNIT_SIZE);
+                            break;
+                        case(2):
+                            if(curY==0|| colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null
+                                    ||colors[(curX)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null
+                                    ||colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null) {//check one space from top and two spaces bottom-left)
+                                mode= 1;
+                                break;
+                            }
+                            shape.setLocation(0,0, curX, curY-UNIT_SIZE);
+                            shape.setLocation(0,2, curX, curY+UNIT_SIZE);
+                            shape.setLocation(1,0, curX-UNIT_SIZE, curY-UNIT_SIZE);
+                            break;
+                        case(3):
+                            if(curX>=BOARD_WIDTH-UNIT_SIZE || colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null
+                                    ||colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null
+                                    ||colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){ //check two spaces from left
+                                mode = 2;
+                                break;
+                            }
+                            //else
+                            shape.setLocation(0,0, curX+UNIT_SIZE, curY);
+                            shape.setLocation(0,2, curX-UNIT_SIZE, curY);
+                            shape.setLocation(1,0, curX+UNIT_SIZE, curY-UNIT_SIZE);
+                            break;
+                        case(4):
+                            if(curY>=BOARD_HEIGHT-UNIT_SIZE|| colors[(curX)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null
+                                    ||colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null
+                                    ||colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null) {//check two spaces from top)
+                                mode= 3;
+                                break;
+                            }
+                            shape.setLocation(0,0, curX, curY+UNIT_SIZE);
+                            shape.setLocation(0,2, curX, curY-UNIT_SIZE);
+                            shape.setLocation(1,0, curX+UNIT_SIZE, curY+UNIT_SIZE);
+                            break;
+                    }
+                    break;
+            case(4):
+                switch(mode){
+                    case(1):
+                    case(3):
+                        if(curX>=BOARD_WIDTH-2*UNIT_SIZE||curX<=UNIT_SIZE|| colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null //(0,0)
+                                ||colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null//(0,2)
+                                ||colors[(curX+2*UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null) {//(0,3)
+                            mode= 3;
+                            break;
+                        }
+                        //else
+                        shape.setLocation(0,0, curX-UNIT_SIZE, curY);
+                        shape.setLocation(0,2, curX+UNIT_SIZE, curY);
+                        shape.setLocation(0,3, curX+2*UNIT_SIZE, curY);
+                    break;
+
+                    case(2):
+                    case(4):
+                        if(curY>=BOARD_HEIGHT-2*UNIT_SIZE||curY<=UNIT_SIZE|| colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null //(0,0)
+                                ||colors[(curX)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null//(0,2)
+                                ||colors[(curX)/UNIT_SIZE][(curY+2*UNIT_SIZE)/UNIT_SIZE]!=null) {//(0,3)
+                            mode= 3;
+                            break;
+                        }
+                        //else
+                        shape.setLocation(0,0, curX, curY-UNIT_SIZE);
+                        shape.setLocation(0,2, curX, curY+UNIT_SIZE);
+                        shape.setLocation(0,3, curX, curY+2*UNIT_SIZE);
+                        break;
+                }
+                break;
+            case(5)://green
+                switch(mode){
+                    case(1):
+                    case(3):
+                        if(curX>=BOARD_WIDTH-UNIT_SIZE||
+                        colors[(curX)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null||
+                        colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null){
+                            mode = 3;
+                            break;
+                        }
+                        //else
+                        shape.setLocation(0,0, curX-UNIT_SIZE, curY);
+                        shape.setLocation(1,1, curX, curY+UNIT_SIZE);
+                        shape.setLocation(1,2, curX+UNIT_SIZE, curY+UNIT_SIZE);
+                        break;
+                    case(2):
+                    case(4):
+                        if(curY == 0||
+                                colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null||
+                                colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null){
+                            mode = 2;
+                            break;
+                        }
+                        //else
+                        shape.setLocation(0,0, curX, curY-UNIT_SIZE);
+                        shape.setLocation(1,1, curX-UNIT_SIZE, curY);
+                        shape.setLocation(1,2, curX-UNIT_SIZE, curY+UNIT_SIZE);
+                        break;
+                }
+            break;
+            case(6):
+                switch(mode){
+                    case(1):
+                    case(3):
+                        if(curX>=BOARD_WIDTH-UNIT_SIZE||
+                                colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null||
+                                colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null){
+                            mode = 3;
+                            break;
+                        }
+                        //else
+                        shape.setLocation(0,2, curX+UNIT_SIZE, curY);
+                        shape.setLocation(1,1, curX, curY+UNIT_SIZE);
+                        shape.setLocation(1,0, curX-UNIT_SIZE, curY+UNIT_SIZE);
+                        break;
+                    case(2):
+                    case(4):
+                        if(curY == 0||
+                                colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null|| //(1,1)
+                                colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){//(1,0)
+                            mode = 2;
+                            break;
+                        }
+                        //else
+                        shape.setLocation(0,2, curX, curY+UNIT_SIZE);
+                        shape.setLocation(1,1, curX-UNIT_SIZE, curY);
+                        shape.setLocation(1,0, curX-UNIT_SIZE, curY-UNIT_SIZE);
+                        break;
+                }
+            }
         }
 
 
@@ -312,9 +429,7 @@ public void printer()
                             for (int i = 0; i < shape.rows() && moveLeft; i++)
                                 for (int j = 0; j < shape.length() && moveLeft; j++) {
                                     if (shape.checkNull(i, j)) {
-
-                                        if (shape.getX(i, j) == 0 || colors[shape.getX(i, j) / UNIT_SIZE][shape.getY(i, j) / UNIT_SIZE] != null
-                                                && !shape.checkNull(i, j - 1)) {
+                                        if (shape.getX(i, j) == 0 || colors[(shape.getX(i,j)-UNIT_SIZE) / UNIT_SIZE][shape.getY(i,j)/ UNIT_SIZE] != null) {
                                             moveLeft = false;
                                         }
                                     }
@@ -335,8 +450,7 @@ public void printer()
                                 for (int j = 0; j < shape.length() && moveRight; j++) {
                                     if (shape.checkNull(i, j)) {
                                         if (shape.getX(i, j) + UNIT_SIZE == BOARD_WIDTH
-                                                || colors[shape.getX(i, j) / UNIT_SIZE][shape.getY(i, j) / UNIT_SIZE] != null
-                                                && !shape.checkNull(i, j + 1))
+                                                || colors[(shape.getX(i, j)+UNIT_SIZE) / UNIT_SIZE][shape.getY(i, j) / UNIT_SIZE] != null)
                                             moveRight = false;
                                     }
                                 }
@@ -365,12 +479,18 @@ public void printer()
                             changeMode();
                             break;
                         case KeyEvent.VK_DOWN:
-                            for (int i = 0; i < shape.rows(); i++)
-                                for (int j = 0; j < shape.length(); j++)
-                                    if (shape.checkNull(i, j))
+                            boolean moveDown = true;
+                            for (int i = 0; i < shape.rows() && moveDown; i++)
+                                for (int j = 0; j < shape.length() && moveDown; j++)
+                                    if (shape.checkNull(i, j) && shape.getY(i,j)>=BOARD_HEIGHT-UNIT_SIZE
+                                            || colors[(shape.getX(i, j)) / UNIT_SIZE][(shape.getY(i, j)+UNIT_SIZE) / UNIT_SIZE]!=null)
+                                        moveDown = false;
+                            for (int i = 0; i < shape.rows() && moveDown; i++)
+                                for (int j = 0; j < shape.length() && moveDown; j++)
+                                    if (shape.checkNull(i, j)){
                                         shape.setLocation(i, j, shape.getX(i, j),
                                                 shape.getY(i, j) + UNIT_SIZE);
-                    }
+                    }               }
                 }
             }
         
