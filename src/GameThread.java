@@ -7,7 +7,7 @@ public class GameThread extends Thread{
     @Override
     public void run() {
         while(true) {
-            while (ga.checkLast() && ga.running) {
+            while (!ga.endgame && ga.running && ga.checkLast()) {
                 ga.move();
                 try {
                     Thread.sleep(ga.speed);
@@ -15,6 +15,7 @@ public class GameThread extends Thread{
                     e.printStackTrace();
                 }
             }
+            System.out.print("");
         }
     }
 }

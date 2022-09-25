@@ -3,10 +3,7 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Random;
-enum SHAPES{
-    RED, YELLOW, PURPLE, BLUE, ORANGE, GREEN, CYAN
-}
-public class GameZone extends JPanel {
+public class GameZone extends JPanel  {
     final int BOARD_WIDTH = 300;
     final int BOARD_HEIGHT = 540;
     final int UNIT_SIZE = 30;
@@ -22,6 +19,7 @@ public class GameZone extends JPanel {
     boolean moveLeft = true;
     boolean moveRight = true;
     boolean running = true;
+    boolean endgame = false;
     Block shape;
     int[] curLast;
     Color[][] colors;
@@ -36,6 +34,7 @@ public class GameZone extends JPanel {
         this.setFocusable(true);
         this.addKeyListener(new MyKeyAdapter());
         this.setBorder(BorderFactory.createLineBorder(Color.black, 2));
+
         chooseShape();
         createShape(curShape);
         colors = new Color[GAME_UNITS_X][GAME_UNITS_Y];
@@ -94,9 +93,16 @@ public class GameZone extends JPanel {
     }
 
     public boolean endGame() {
-        for (int i = 0; i < GAME_UNITS_X; i++)
-            if (colors[0][i] != null) return false;
-        return true;
+        for (int i = 0; i < shape.rows(); i++)
+            for (int j = 0; j < shape.length(); j++)
+                if (shape.checkNull(i, j))
+                    if(shape.getY(i,j)<=0) {
+                        endgame = true;
+                        System.out.println("endgame");
+                        return true;
+                    }
+        return false;
+
     }
 /* check if the shape has reached the bottom*/
     public boolean checkLast() {
@@ -104,8 +110,10 @@ public class GameZone extends JPanel {
             for (int j = 0; j < shape.length(); j++)
                 if (shape.checkNull(i, j))
                     if (curLast[shape.getX(i, j) / UNIT_SIZE] == shape.getY(i, j)+UNIT_SIZE) {
-                        build();
-                        checkRow();
+                        if(!endGame()){
+                            build();
+                            checkRow();
+                        }
                         return false;
                     }
 
@@ -157,16 +165,9 @@ public class GameZone extends JPanel {
                 colors[k][j] = colors[k][j - 1];
             }
         }
-            for(int i = 0; i<curLast.length; i++)
-                System.out.print(curLast[i]+" ");
-            System.out.println();
             for (int i = 0; i < GAME_UNITS_X; i++) //change the limit line
                 curLast[i] += UNIT_SIZE;
             checkLimit(); //checks the limit, if there are "holes" it changes the limit
-            for(int i = 0; i<curLast.length; i++)
-                System.out.print(curLast[i]+" ");
-            System.out.println();
-
     }
 
     public void checkLimit(){
@@ -436,8 +437,7 @@ public class GameZone extends JPanel {
                 repaint();
             }
 
-
-            public class MyKeyAdapter extends KeyAdapter {
+    public class MyKeyAdapter extends KeyAdapter {
                 @Override
                 public void keyPressed(KeyEvent e) {
                     switch (e.getKeyCode()) {
