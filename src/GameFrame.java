@@ -12,7 +12,9 @@ public class GameFrame extends JFrame {
         this.add(gameZone);
         gameZone.setBounds(20,20, gameZone.BOARD_WIDTH, gameZone.BOARD_HEIGHT);
         this.add(gameZone.score);
-        gameZone.score.setBounds(350,20, gameZone.score.BOARD_WIDTH, gameZone.score.BOARD_HEIGHT);
+        gameZone.score.setBounds(325,gameZone.score.BOARD_Y, gameZone.score.BOARD_WIDTH, gameZone.score.BOARD_HEIGHT);
+        this.add(gameZone.level);
+        gameZone.level.setBounds(325,gameZone.level.BOARD_Y, gameZone.level.BOARD_WIDTH, gameZone.level.BOARD_HEIGHT);
         new GameThread(gameZone).start();
         this.setVisible(true);
     }

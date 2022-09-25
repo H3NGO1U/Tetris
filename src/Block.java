@@ -2,7 +2,7 @@ import java.awt.*;
 
 public class Block {
     final int MIDDLE = 120;
-    final int UNIT_SIZE = 20;
+    final int UNIT_SIZE = 30;
     private Point[][] shape;
     private Color color;
     private int rows;

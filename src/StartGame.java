@@ -3,15 +3,14 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class StartGame extends JFrame implements ActionListener {
+public class StartGame extends JPanel implements ActionListener {
     JButton startBtn;
     JButton leaderBtn;
     JButton quitBtn;
     public StartGame(){
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setSize(600,600);
         this.setLayout(null);
-        this.getContentPane().setBackground(Color.gray);
+        this.setBackground(Color.gray);
         startBtn = new JButton();
         startBtn.setBounds(200, 250, 200, 50);
         startBtn.setText("Start");

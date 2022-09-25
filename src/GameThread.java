@@ -7,10 +7,10 @@ public class GameThread extends Thread{
     @Override
     public void run() {
         while(true) {
-            while (ga.checkLast()) {
+            while (ga.checkLast() && ga.running) {
                 ga.move();
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(ga.speed);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

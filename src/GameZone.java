@@ -9,23 +9,25 @@ enum SHAPES{
 public class GameZone extends JPanel {
     final int BOARD_WIDTH = 300;
     final int BOARD_HEIGHT = 540;
-    final int UNIT_SIZE = 20;
+    final int UNIT_SIZE = 30;
     final int GAME_UNITS_X = BOARD_WIDTH / UNIT_SIZE;
     final int GAME_UNITS_Y = BOARD_HEIGHT / UNIT_SIZE;
     final int MIDDLE = BOARD_WIDTH/2;
     Random random;
-
-
+    int speed = 500;
     int curY = 0;
     int curX = MIDDLE;
     int curShape;
     int mode = 1;
     boolean moveLeft = true;
     boolean moveRight = true;
+    boolean running = true;
     Block shape;
     int[] curLast;
     Color[][] colors;
+
     Score score = new Score();
+    Level level = new Level();
     GameZone() {
 
         random = new Random();
@@ -33,7 +35,7 @@ public class GameZone extends JPanel {
         this.setOpaque(true);
         this.setFocusable(true);
         this.addKeyListener(new MyKeyAdapter());
-        this.setBorder(BorderFactory.createLineBorder(Color.black));
+        this.setBorder(BorderFactory.createLineBorder(Color.black, 2));
         chooseShape();
         createShape(curShape);
         colors = new Color[GAME_UNITS_X][GAME_UNITS_Y];
@@ -42,7 +44,7 @@ public class GameZone extends JPanel {
         for (int i = 0; i < GAME_UNITS_X; i++) {
             curLast[i] = BOARD_HEIGHT;
         }
-System.out.println(colors.length+" "+colors[0].length);
+
     }
 
     public void paintComponent(Graphics g) {
@@ -52,7 +54,7 @@ System.out.println(colors.length+" "+colors[0].length);
 
     public void draw(Graphics g) {
         Graphics2D g2D = (Graphics2D) g;
-
+/* draw the landed figures*/
         for (int k = 0; k < BOARD_HEIGHT; k += UNIT_SIZE) {
             for (int m = 0; m < BOARD_WIDTH; m += UNIT_SIZE) {
                 int yCor = k / UNIT_SIZE, xCor = m / UNIT_SIZE;
@@ -67,7 +69,7 @@ System.out.println(colors.length+" "+colors[0].length);
             }
         }
 
-
+/*draw the falling shape*/
         for (int i = 0; i < shape.rows(); i++)
             for (int j = 0; j < shape.length(); j++)
                 if (shape.checkNull(i, j)) {
@@ -80,17 +82,6 @@ System.out.println(colors.length+" "+colors[0].length);
                             UNIT_SIZE, UNIT_SIZE);
                 }
     }
-public void printer()
-{
-    for(int i = 0; i< colors.length; i++) {
-        System.out.println();
-        for (int j = 0; j < colors[0].length; j++) {
-            if (colors[i][j] != null)
-                System.out.print("* ");
-            else System.out.print("- ");
-        }
-    }
-}
 
     public void createShape(int curShape) {
         shape = new Block(curShape);
@@ -112,11 +103,12 @@ public void printer()
         for (int i = 0; i < shape.rows(); i++)
             for (int j = 0; j < shape.length(); j++)
                 if (shape.checkNull(i, j))
-                    if (curLast[shape.getX(i, j) / UNIT_SIZE] - UNIT_SIZE == shape.getY(i, j)) {
+                    if (curLast[shape.getX(i, j) / UNIT_SIZE] == shape.getY(i, j)+UNIT_SIZE) {
                         build();
                         checkRow();
                         return false;
                     }
+
         return true;
     }
 
@@ -128,6 +120,7 @@ public void printer()
                     if (shape.getY(i, j) < curLast[shape.getX(i, j) / UNIT_SIZE])
                         curLast[shape.getX(i, j) / UNIT_SIZE] = shape.getY(i, j);
                 }
+
         chooseShape();
         createShape(curShape);
 
@@ -140,10 +133,15 @@ public void printer()
             for (int i = 0; i < BOARD_WIDTH; i += UNIT_SIZE) {
                 if (colors[i / UNIT_SIZE][row / UNIT_SIZE] != null) check++;
             }
-            if (check == GAME_UNITS_X){
+            if (check == GAME_UNITS_X) {
                 cleanRow(row / UNIT_SIZE);
                 score.addScore();
+                if (score.getScore() % 100 == 0) {//every 100 point raise the level
+                    speed -= 50;
+                    level.addLevel();
+                }
             }
+
             check = 0;
         }
     }
@@ -159,10 +157,30 @@ public void printer()
                 colors[k][j] = colors[k][j - 1];
             }
         }
-        for (int i = 0; i < GAME_UNITS_X; i++)
-            curLast[i] += UNIT_SIZE;
+            for(int i = 0; i<curLast.length; i++)
+                System.out.print(curLast[i]+" ");
+            System.out.println();
+            for (int i = 0; i < GAME_UNITS_X; i++) //change the limit line
+                curLast[i] += UNIT_SIZE;
+            checkLimit(); //checks the limit, if there are "holes" it changes the limit
+            for(int i = 0; i<curLast.length; i++)
+                System.out.print(curLast[i]+" ");
+            System.out.println();
+
     }
 
+    public void checkLimit(){
+        boolean found;
+        for(int i = 0; i<curLast.length; i++) { //check all x
+            found = false;
+            while (curLast[i] <= BOARD_HEIGHT-UNIT_SIZE && !found) {
+                if (colors[i][curLast[i] / UNIT_SIZE] != null) //there's a color block - can break from loop
+                    found = true;
+                else //HOLE
+                    curLast[i] += UNIT_SIZE;
+            }
+        }
+    }
     //rotate the shape
     public void changeMode() {
         updatePoint(0,1);
