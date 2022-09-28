@@ -2,47 +2,44 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.Random;
 public class GameZone extends JPanel  {
     final int BOARD_WIDTH = 300;
     final int BOARD_HEIGHT = 540;
     final int UNIT_SIZE = 30;
     final int GAME_UNITS_X = BOARD_WIDTH / UNIT_SIZE;
     final int GAME_UNITS_Y = BOARD_HEIGHT / UNIT_SIZE;
-    final int MIDDLE = BOARD_WIDTH/2;
-    Random random;
+    int curX;
+    int curY;
     int speed = 500;
-    int curY = 0;
-    int curX = MIDDLE;
-    int curShape;
+
     int mode = 1;
     boolean moveLeft = true;
     boolean moveRight = true;
     boolean running = true;
     boolean endgame = false;
     Block shape;
-    int[] curLast;
-    Color[][] colors;
-
+    int[] curLast; //current last row - blocks the passage
+    Color[][] colors; //current landed shapes
+    boolean[] rowsToClean; //rows to clean - for the bubble effect
     Score score = new Score();
     Level level = new Level();
+    NextShape nextShape = new NextShape();
     GameZone() {
-
-        random = new Random();
         this.setLayout(null);
         this.setOpaque(true);
         this.setFocusable(true);
         this.addKeyListener(new MyKeyAdapter());
         this.setBorder(BorderFactory.createLineBorder(Color.black, 2));
-
-        chooseShape();
-        createShape(curShape);
+        this.setBackground(Color.WHITE);
+        nextShape.chooseShape();
+        createShape();
         colors = new Color[GAME_UNITS_X][GAME_UNITS_Y];
         curLast = new int[GAME_UNITS_X];
-
         for (int i = 0; i < GAME_UNITS_X; i++) {
             curLast[i] = BOARD_HEIGHT;
         }
+        rowsToClean = new boolean[GAME_UNITS_Y];
+        refreshRowsToClean();
 
     }
 
@@ -82,15 +79,16 @@ public class GameZone extends JPanel  {
                 }
     }
 
-    public void createShape(int curShape) {
-        shape = new Block(curShape);
+    public void createShape() {
+        shape = new Block(nextShape.curShape);
+        curX = ((BOARD_WIDTH - shape.length()*UNIT_SIZE)/(2*UNIT_SIZE))*UNIT_SIZE;
+        curY = 0;
+        shape.posShape(curX, curY);
+        nextShape.createShape();
         mode = 1;
         repaint();
     }
 
-    public void chooseShape() {
-        curShape = random.nextInt(7);
-    }
 
     public boolean endGame() {
         for (int i = 0; i < shape.rows(); i++)
@@ -129,8 +127,8 @@ public class GameZone extends JPanel  {
                         curLast[shape.getX(i, j) / UNIT_SIZE] = shape.getY(i, j);
                 }
 
-        chooseShape();
-        createShape(curShape);
+        nextShape.chooseShape();
+        createShape();
 
 
     }
@@ -142,32 +140,98 @@ public class GameZone extends JPanel  {
                 if (colors[i / UNIT_SIZE][row / UNIT_SIZE] != null) check++;
             }
             if (check == GAME_UNITS_X) {
-                cleanRow(row / UNIT_SIZE);
+                rowsToClean[row/UNIT_SIZE] = true; //CLEAN
                 score.addScore();
                 if (score.getScore() % 100 == 0) {//every 100 point raise the level
                     speed -= 50;
                     level.addLevel();
                 }
             }
-
             check = 0;
         }
+        cleanRow();
     }
 
-    public void cleanRow(int row) {
-        for (int i = 0; i < GAME_UNITS_X; i++)
-            colors[i][row] = null;
-        int counter=0;
-        for (int j = row; j > 0 && counter < GAME_UNITS_X; j--) {
-            counter = 0;
-            for (int k = 0; k < GAME_UNITS_X; k++) {
-                if (colors[k][j - 1] == null) counter++;
-                colors[k][j] = colors[k][j - 1];
+    //clean the full rows
+    public void cleanRow() {
+        int rows = 0;
+        for(int i = 0; i < rowsToClean.length; i++)
+            if(rowsToClean[i])
+                rows++;
+        if(rows == 0)
+            return;
+
+        int[] numOfRowsToClean = new int[rows];
+
+        for (int i = 0; i < GAME_UNITS_Y && rows>=1; i++)
+                if (rowsToClean[i]) {
+                    numOfRowsToClean[rows-1] = i;
+                    rows--;
+                }
+
+
+
+        /*copy of the current colors map - landed figures*/
+        Color[][] curColors = new Color[GAME_UNITS_X][GAME_UNITS_Y];
+        for(int j = 0; j < GAME_UNITS_Y; j++)
+            for (int i = 0; i < GAME_UNITS_X; i++)
+                if(rowsToClean[j]) //copy only rows that need cleaning
+                    curColors[i][j] = colors[i][j];
+
+
+        /*blup blup blup*/
+        for (int j = 0; j < 3; j++) {
+
+            for (int i = 0; i < GAME_UNITS_X; i++)
+                for(int k = 0; k < numOfRowsToClean.length; k++) {
+                    int row = numOfRowsToClean[k];
+                    colors[i][row] = null;
+                }
+            repaint();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            for (int i = 0; i < GAME_UNITS_X; i++)
+                for(int k = 0; k < numOfRowsToClean.length; k++) {
+                    int row = numOfRowsToClean[k];
+                    colors[i][row] = curColors[i][row];
+                }
+            repaint();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
+
+        //delete row
+        for(int k = numOfRowsToClean.length-1; k>=0; k--) {
+            int row = numOfRowsToClean[k];
+            for (int i = 0; i < GAME_UNITS_X; i++)
+                colors[i][row] = null;
+            int counter = 0;
+            for (int i = row; i > 0 && counter < GAME_UNITS_X; i--) {
+                counter = 0;
+                for (int j = 0; j < GAME_UNITS_X; j++) {
+                    if(colors[j][i - 1] == null) counter++;
+                    colors[j][i] = colors[j][i - 1];
+                }
+            }
             for (int i = 0; i < GAME_UNITS_X; i++) //change the limit line
                 curLast[i] += UNIT_SIZE;
-            checkLimit(); //checks the limit, if there are "holes" it changes the limit
+        }
+
+
+        refreshRowsToClean();
+        checkLimit(); //checks the limit, if there are "holes" it changes the limit
+
+    }
+
+    public void refreshRowsToClean(){
+        for (int i = 0; i < GAME_UNITS_Y; i++)
+            rowsToClean[i] = false;
     }
 
     public void checkLimit(){
@@ -185,7 +249,7 @@ public class GameZone extends JPanel  {
     //rotate the shape
     public void changeMode() {
         updatePoint(0,1);
-        switch(curShape){
+        switch(nextShape.curShape){
             case(0): //red
                 break;
             case(1): //yellow
@@ -202,7 +266,7 @@ public class GameZone extends JPanel  {
                             shape.setLocation(0,2, curX+UNIT_SIZE, curY);
                             break;
                         case (2):
-                            if(curY==BOARD_HEIGHT || colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){ //
+                            if(curY+UNIT_SIZE==BOARD_HEIGHT || curY == 0|| colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){ //
                                 mode = 1;
                                 break;
                             }
@@ -334,14 +398,14 @@ public class GameZone extends JPanel  {
                             break;
                     }
                     break;
-            case(4):
+            case(4): //orange
                 switch(mode){
                     case(1):
                     case(3):
                         if(curX>=BOARD_WIDTH-2*UNIT_SIZE||curX<=UNIT_SIZE|| colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null //(0,0)
                                 ||colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null//(0,2)
                                 ||colors[(curX+2*UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null) {//(0,3)
-                            mode= 3;
+                            mode= 2;
                             break;
                         }
                         //else
@@ -355,7 +419,7 @@ public class GameZone extends JPanel  {
                         if(curY>=BOARD_HEIGHT-2*UNIT_SIZE||curY<=UNIT_SIZE|| colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null //(0,0)
                                 ||colors[(curX)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null//(0,2)
                                 ||colors[(curX)/UNIT_SIZE][(curY+2*UNIT_SIZE)/UNIT_SIZE]!=null) {//(0,3)
-                            mode= 3;
+                            mode= 1;
                             break;
                         }
                         //else
@@ -372,7 +436,7 @@ public class GameZone extends JPanel  {
                         if(curX>=BOARD_WIDTH-UNIT_SIZE||
                         colors[(curX)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null||
                         colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null){
-                            mode = 3;
+                            mode = 2;
                             break;
                         }
                         //else
@@ -385,7 +449,7 @@ public class GameZone extends JPanel  {
                         if(curY == 0||
                                 colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null||
                                 colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null){
-                            mode = 2;
+                            mode = 1;
                             break;
                         }
                         //else
@@ -402,7 +466,7 @@ public class GameZone extends JPanel  {
                         if(curX>=BOARD_WIDTH-UNIT_SIZE||
                                 colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null||
                                 colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null){
-                            mode = 3;
+                            mode = 2;
                             break;
                         }
                         //else
@@ -415,7 +479,7 @@ public class GameZone extends JPanel  {
                         if(curY == 0||
                                 colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null|| //(1,1)
                                 colors[(curX-UNIT_SIZE)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){//(1,0)
-                            mode = 2;
+                            mode = 1;
                             break;
                         }
                         //else
@@ -440,6 +504,8 @@ public class GameZone extends JPanel  {
     public class MyKeyAdapter extends KeyAdapter {
                 @Override
                 public void keyPressed(KeyEvent e) {
+                    if(!running)
+                        return;
                     switch (e.getKeyCode()) {
                         case KeyEvent.VK_LEFT:
                             moveLeft = true;

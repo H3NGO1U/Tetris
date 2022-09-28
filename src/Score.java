@@ -10,6 +10,7 @@ public class Score extends JPanel {
         this.setLayout(null);
         this.setOpaque(true);
         this.setFocusable(true);
+        this.setBackground(Color.WHITE);
         this.setBorder(BorderFactory.createLineBorder(Color.black, 2));
 
     }

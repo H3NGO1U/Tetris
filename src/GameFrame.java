@@ -22,7 +22,8 @@ public class GameFrame extends JFrame implements ActionListener {
         gameZone.score.setBounds(SIDE_ELM_X_POS,gameZone.score.BOARD_Y, SIDE_ELM_WIDTH, SIDE_ELM_HEIGHT);
         this.add(gameZone.level);
         gameZone.level.setBounds(SIDE_ELM_X_POS,gameZone.level.BOARD_Y, SIDE_ELM_WIDTH, SIDE_ELM_HEIGHT);
-
+        this.add(gameZone.nextShape);
+        gameZone.nextShape.setBounds(SIDE_ELM_X_POS, gameZone.nextShape.BOARD_Y, SIDE_ELM_WIDTH, gameZone.nextShape.SIZE);
         //pause button
         pause = new JButton();
         pause.addActionListener(this);
