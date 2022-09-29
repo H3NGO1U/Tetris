@@ -1,3 +1,6 @@
+import javax.sound.sampled.LineUnavailableException;
+import java.io.IOException;
+
 public class GameThread extends Thread{
     GameZone ga;
     public GameThread(GameZone gameZone){
@@ -7,7 +10,15 @@ public class GameThread extends Thread{
     @Override
     public void run() {
         while(true) {
-            while (!ga.endgame && ga.running && ga.checkLast()) {
+            while (true) {
+                try {
+                    if (!(!ga.endgame && ga.running && ga.checkLast() && !ga.animation)) break;
+                } catch (LineUnavailableException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 ga.move();
                 try {
                     Thread.sleep(ga.speed);

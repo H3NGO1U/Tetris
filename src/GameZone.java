@@ -1,7 +1,11 @@
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
+
 public class GameZone extends JPanel  {
     final int BOARD_WIDTH = 300;
     final int BOARD_HEIGHT = 540;
@@ -12,11 +16,13 @@ public class GameZone extends JPanel  {
     int curY;
     int speed = 500;
 
+
     int mode = 1;
     boolean moveLeft = true;
     boolean moveRight = true;
     boolean running = true;
     boolean endgame = false;
+    boolean animation;
     Block shape;
     int[] curLast; //current last row - blocks the passage
     Color[][] colors; //current landed shapes
@@ -24,13 +30,22 @@ public class GameZone extends JPanel  {
     Score score = new Score();
     Level level = new Level();
     NextShape nextShape = new NextShape();
-    GameZone() {
-        this.setLayout(null);
+    File fileMode = new File("changeMode.wav");
+    AudioInputStream audioMode = AudioSystem.getAudioInputStream(fileMode);
+    Clip clipMode = AudioSystem.getClip();
+    File fileClear = new File("clear.wav");
+    AudioInputStream audioClear = AudioSystem.getAudioInputStream(fileClear);
+    Clip clipClear = AudioSystem.getClip();
+
+    GameZone() throws UnsupportedAudioFileException, LineUnavailableException, IOException {
+        this.setLayout(new BorderLayout());
         this.setOpaque(true);
         this.setFocusable(true);
         this.addKeyListener(new MyKeyAdapter());
         this.setBorder(BorderFactory.createLineBorder(Color.black, 2));
         this.setBackground(Color.WHITE);
+
+
         nextShape.chooseShape();
         createShape();
         colors = new Color[GAME_UNITS_X][GAME_UNITS_Y];
@@ -40,6 +55,8 @@ public class GameZone extends JPanel  {
         }
         rowsToClean = new boolean[GAME_UNITS_Y];
         refreshRowsToClean();
+        clipClear.open(audioClear);
+        clipMode.open(audioMode);
 
     }
 
@@ -50,6 +67,8 @@ public class GameZone extends JPanel  {
 
     public void draw(Graphics g) {
         Graphics2D g2D = (Graphics2D) g;
+
+
 /* draw the landed figures*/
         for (int k = 0; k < BOARD_HEIGHT; k += UNIT_SIZE) {
             for (int m = 0; m < BOARD_WIDTH; m += UNIT_SIZE) {
@@ -103,7 +122,7 @@ public class GameZone extends JPanel  {
 
     }
 /* check if the shape has reached the bottom*/
-    public boolean checkLast() {
+    public boolean checkLast() throws LineUnavailableException, IOException {
         for (int i = 0; i < shape.rows(); i++)
             for (int j = 0; j < shape.length(); j++)
                 if (shape.checkNull(i, j))
@@ -133,7 +152,7 @@ public class GameZone extends JPanel  {
 
     }
 /*check all the rows if they are full*/
-    public void checkRow() {
+    public void checkRow() throws LineUnavailableException, IOException {
         int check = 0;
         for (int row = 0; row < BOARD_HEIGHT; row += UNIT_SIZE) {
             for (int i = 0; i < BOARD_WIDTH; i += UNIT_SIZE) {
@@ -181,6 +200,7 @@ public class GameZone extends JPanel  {
 
         /*blup blup blup*/
         for (int j = 0; j < 3; j++) {
+            clipClear.start();
 
             for (int i = 0; i < GAME_UNITS_X; i++)
                 for(int k = 0; k < numOfRowsToClean.length; k++) {
@@ -204,6 +224,8 @@ public class GameZone extends JPanel  {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            clipClear.setMicrosecondPosition(0);
         }
 
         //delete row
@@ -264,6 +286,7 @@ public class GameZone extends JPanel  {
                             shape.setLocation(1,1, curX, curY+UNIT_SIZE);
                             shape.setLocation(0,0, curX-UNIT_SIZE, curY);
                             shape.setLocation(0,2, curX+UNIT_SIZE, curY);
+                            clipMode.start();
                             break;
                         case (2):
                             if(curY+UNIT_SIZE==BOARD_HEIGHT || curY == 0|| colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){ //
@@ -274,6 +297,7 @@ public class GameZone extends JPanel  {
                             shape.setLocation(1,1, curX-UNIT_SIZE, curY);
                             shape.setLocation(0,0, curX, curY-UNIT_SIZE);
                             shape.setLocation(0,2, curX, curY+UNIT_SIZE);
+                            clipMode.start();
                             break;
 
                     case(3):
@@ -285,6 +309,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(1,1,curX,curY-UNIT_SIZE);
                         shape.setLocation(0,0, curX+UNIT_SIZE, curY);
                         shape.setLocation(0,2, curX-UNIT_SIZE, curY);
+                        clipMode.start();
                         break;
                     case(4):
                         if(curY==BOARD_HEIGHT-UNIT_SIZE || colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null){
@@ -295,6 +320,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(1,1, curX+UNIT_SIZE, curY);
                         shape.setLocation(0,0, curX, curY+UNIT_SIZE);
                         shape.setLocation(0,2, curX, curY-UNIT_SIZE);
+                        clipMode.start();
                         break;
                 }
             break;
@@ -311,6 +337,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(0,0, curX-UNIT_SIZE, curY);
                         shape.setLocation(0,2, curX+UNIT_SIZE, curY);
                         shape.setLocation(1,2, curX+UNIT_SIZE, curY+UNIT_SIZE);
+                        clipMode.start();
                         break;
                     case(2):
                         if(curY==0|| colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null
@@ -322,6 +349,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(0,0, curX, curY-UNIT_SIZE);
                         shape.setLocation(0,2, curX, curY+UNIT_SIZE);
                         shape.setLocation(1,2, curX-UNIT_SIZE, curY+UNIT_SIZE);
+                        clipMode.start();
                         break;
                     case(3):
                         if(curX>=BOARD_WIDTH-UNIT_SIZE || colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null
@@ -334,6 +362,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(0,0, curX+UNIT_SIZE, curY);
                         shape.setLocation(0,2, curX-UNIT_SIZE, curY);
                         shape.setLocation(1,2, curX-UNIT_SIZE, curY-UNIT_SIZE);
+                        clipMode.start();
                         break;
                     case(4):
                         if(curY>=BOARD_HEIGHT-UNIT_SIZE|| colors[(curX)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null
@@ -345,6 +374,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(0,0, curX, curY+UNIT_SIZE);
                         shape.setLocation(0,2, curX, curY-UNIT_SIZE);
                         shape.setLocation(1,2, curX+UNIT_SIZE, curY-UNIT_SIZE);
+                        clipMode.start();
                         break;
                 }
             break;
@@ -361,6 +391,7 @@ public class GameZone extends JPanel  {
                             shape.setLocation(0,0, curX-UNIT_SIZE, curY);
                             shape.setLocation(0,2, curX+UNIT_SIZE, curY);
                             shape.setLocation(1,0, curX-UNIT_SIZE, curY+UNIT_SIZE);
+                            clipMode.start();
                             break;
                         case(2):
                             if(curY==0|| colors[(curX)/UNIT_SIZE][(curY-UNIT_SIZE)/UNIT_SIZE]!=null
@@ -372,6 +403,7 @@ public class GameZone extends JPanel  {
                             shape.setLocation(0,0, curX, curY-UNIT_SIZE);
                             shape.setLocation(0,2, curX, curY+UNIT_SIZE);
                             shape.setLocation(1,0, curX-UNIT_SIZE, curY-UNIT_SIZE);
+                            clipMode.start();
                             break;
                         case(3):
                             if(curX>=BOARD_WIDTH-UNIT_SIZE || colors[(curX+UNIT_SIZE)/UNIT_SIZE][(curY)/UNIT_SIZE]!=null
@@ -384,6 +416,7 @@ public class GameZone extends JPanel  {
                             shape.setLocation(0,0, curX+UNIT_SIZE, curY);
                             shape.setLocation(0,2, curX-UNIT_SIZE, curY);
                             shape.setLocation(1,0, curX+UNIT_SIZE, curY-UNIT_SIZE);
+                            clipMode.start();
                             break;
                         case(4):
                             if(curY>=BOARD_HEIGHT-UNIT_SIZE|| colors[(curX)/UNIT_SIZE][(curY+UNIT_SIZE)/UNIT_SIZE]!=null
@@ -395,6 +428,7 @@ public class GameZone extends JPanel  {
                             shape.setLocation(0,0, curX, curY+UNIT_SIZE);
                             shape.setLocation(0,2, curX, curY-UNIT_SIZE);
                             shape.setLocation(1,0, curX+UNIT_SIZE, curY+UNIT_SIZE);
+                            clipMode.start();
                             break;
                     }
                     break;
@@ -412,6 +446,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(0,0, curX-UNIT_SIZE, curY);
                         shape.setLocation(0,2, curX+UNIT_SIZE, curY);
                         shape.setLocation(0,3, curX+2*UNIT_SIZE, curY);
+                        clipMode.start();
                     break;
 
                     case(2):
@@ -426,6 +461,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(0,0, curX, curY-UNIT_SIZE);
                         shape.setLocation(0,2, curX, curY+UNIT_SIZE);
                         shape.setLocation(0,3, curX, curY+2*UNIT_SIZE);
+                        clipMode.start();
                         break;
                 }
                 break;
@@ -443,6 +479,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(0,0, curX-UNIT_SIZE, curY);
                         shape.setLocation(1,1, curX, curY+UNIT_SIZE);
                         shape.setLocation(1,2, curX+UNIT_SIZE, curY+UNIT_SIZE);
+                        clipMode.start();
                         break;
                     case(2):
                     case(4):
@@ -456,6 +493,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(0,0, curX, curY-UNIT_SIZE);
                         shape.setLocation(1,1, curX-UNIT_SIZE, curY);
                         shape.setLocation(1,2, curX-UNIT_SIZE, curY+UNIT_SIZE);
+                        clipMode.start();
                         break;
                 }
             break;
@@ -473,6 +511,7 @@ public class GameZone extends JPanel  {
                         shape.setLocation(0,2, curX+UNIT_SIZE, curY);
                         shape.setLocation(1,1, curX, curY+UNIT_SIZE);
                         shape.setLocation(1,0, curX-UNIT_SIZE, curY+UNIT_SIZE);
+                        clipMode.start();
                         break;
                     case(2):
                     case(4):
@@ -486,9 +525,11 @@ public class GameZone extends JPanel  {
                         shape.setLocation(0,2, curX, curY+UNIT_SIZE);
                         shape.setLocation(1,1, curX-UNIT_SIZE, curY);
                         shape.setLocation(1,0, curX-UNIT_SIZE, curY-UNIT_SIZE);
+                        clipMode.start();
                         break;
                 }
             }
+        clipMode.setMicrosecondPosition(0);
         }
 
 

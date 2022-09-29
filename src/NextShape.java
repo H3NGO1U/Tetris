@@ -1,7 +1,8 @@
+
 import javax.swing.*;
 import java.awt.*;
-import java.util.Random;
 
+import java.util.Random;
 public class NextShape extends JPanel {
     final int BOARD_Y = 320;
     final int SIZE = 240;
@@ -12,6 +13,8 @@ public class NextShape extends JPanel {
     int middleX;
     int middleY;
     Random random;
+
+
     NextShape(){
         this.setLayout(null);
         this.setOpaque(true);
@@ -20,6 +23,7 @@ public class NextShape extends JPanel {
         this.setBorder(BorderFactory.createLineBorder(Color.black, 2));
         random = new Random();
         nextShapeN = random.nextInt(7);
+
     }
 
     public void paintComponent(Graphics g){
