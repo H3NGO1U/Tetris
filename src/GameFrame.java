@@ -3,6 +3,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 
@@ -10,21 +12,23 @@ public class GameFrame extends JFrame implements ActionListener {
     final int SIDE_ELM_WIDTH = 240;
     final int SIDE_ELM_HEIGHT = 75;
     final int SIDE_ELM_X_POS = 325;
+    final int SIZE_FRAME = 600;
     final int pausePosY = 170;
     GameZone gameZone;
     JButton pause;
-    JLabel label;
+    JLabel numberL;
     File startFile = new File("threeTwoOne.wav");
     AudioInputStream audio = AudioSystem.getAudioInputStream(startFile);
     Clip clip = AudioSystem.getClip();
-
     GameFrame() throws UnsupportedAudioFileException, LineUnavailableException, IOException {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        this.setSize(600,600);
+        this.setSize(SIZE_FRAME, SIZE_FRAME);
         this.setLayout(null);
         this.getContentPane().setBackground(Color.gray);
+
+        //game zone
         gameZone = new GameZone();
-        this.add(gameZone);
+        this.add(gameZone, BorderLayout.CENTER);
         gameZone.setBounds(20,20, gameZone.BOARD_WIDTH, gameZone.BOARD_HEIGHT);
         this.add(gameZone.score);
         gameZone.score.setBounds(SIDE_ELM_X_POS,gameZone.score.BOARD_Y, SIDE_ELM_WIDTH, SIDE_ELM_HEIGHT);
@@ -33,63 +37,55 @@ public class GameFrame extends JFrame implements ActionListener {
         this.add(gameZone.nextShape);
         gameZone.nextShape.setBounds(SIDE_ELM_X_POS, gameZone.nextShape.BOARD_Y, SIDE_ELM_WIDTH, gameZone.nextShape.SIZE);
         //pause button
-        pause = new JButton();
+        pause = new JButton("Pause");
         pause.addActionListener(this);
         pause.setFocusable(false);
-        pause.setText("Pause");
         pause.setBorder(BorderFactory.createLineBorder(Color.black, 2));
         pause.setBackground(Color.WHITE);
         pause.setForeground(Color.gray);
         pause.setFont(new Font("Monospaced", Font.BOLD, 35));
+            pause.addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent evt) {
+                    pause.setBackground(Color.LIGHT_GRAY);
+                }
+                public void mouseExited(MouseEvent evt) {
+                    pause.setBackground(Color.WHITE);
+                }
+            });
+
         this.add(pause);
         pause.setBounds(SIDE_ELM_X_POS, pausePosY, SIDE_ELM_WIDTH, SIDE_ELM_HEIGHT);
-        label = new JLabel();
-        label.setFont(new Font("Monospaced", Font.BOLD, 70));
-        label.setForeground(Color.GRAY);
-        label.setVerticalTextPosition(JLabel.BOTTOM);
-        label.setHorizontalTextPosition(JLabel.CENTER);
-        label.setVerticalAlignment(JLabel.CENTER);
-        label.setHorizontalAlignment(JLabel.CENTER);
-        gameZone.add(label);
-        label.setVisible(true);
+      //3.. 2.. 1..
+        numberL = new JLabel();
+        numberL.setFont(new Font("Monospaced", Font.BOLD, 70));
+        numberL.setForeground(Color.GRAY);
+        numberL.setVerticalTextPosition(JLabel.BOTTOM);
+        numberL.setHorizontalTextPosition(JLabel.CENTER);
+        numberL.setVerticalAlignment(JLabel.CENTER);
+        numberL.setHorizontalAlignment(JLabel.CENTER);
+        gameZone.add(numberL);
+        numberL.setVisible(true);
         clip.open(audio);
-        //start game
-        new GameThread(gameZone).start();
+    }
+    public void start(){
         this.setVisible(true);
+        SwingUtilities.invokeLater(()->{
+            try {
+                startAnimation();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
 
-        try {
-            startAnimation();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
+        new GameThread(gameZone).start();
     }
     public void startAnimation() throws InterruptedException {
         gameZone.animation = true;
         clip.start();
-        String text;
-        for(int i = 3; i>0; i--) {
-            text = Integer.toString(i);
-            label.setText(text);
-            repaint();
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        }
+        Thread.sleep(3000);
         gameZone.animation = false;
-        label.setText("FIGHT!");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        label.setText("");
-        clip.close();
     }
+
     @Override
     public void actionPerformed(ActionEvent e) {
             if(e.getSource()==pause) {

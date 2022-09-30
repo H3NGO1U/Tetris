@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class GameZone extends JPanel  {
+
     final int BOARD_WIDTH = 300;
     final int BOARD_HEIGHT = 540;
     final int UNIT_SIZE = 30;
@@ -115,7 +116,8 @@ public class GameZone extends JPanel  {
                 if (shape.checkNull(i, j))
                     if(shape.getY(i,j)<=0) {
                         endgame = true;
-                        System.out.println("endgame");
+                        String name = JOptionPane.showInputDialog("Game Over!\nPlease enter your name.");
+                        Main.endGame(name, score.getScore());
                         return true;
                     }
         return false;
