@@ -10,6 +10,7 @@ public class Main {
     public static void main(String[] args){
           SwingUtilities.invokeLater(() -> {
               SG = new StartGame();
+              LB = new LeaderBoard();
               try {
                   GF = new GameFrame();
               } catch (UnsupportedAudioFileException e) {
@@ -25,12 +26,33 @@ public class Main {
     }
 
     public static void Start(){
+        try {
+            GF = new GameFrame();
+        } catch (UnsupportedAudioFileException e) {
+            e.printStackTrace();
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         GF.start();
+        System.out.println(Thread.activeCount());
+
     }
     public static void endGame(String name, int score){
-        SG.setVisible(false);
-        GF.setVisible(false);
-        LB = new LeaderBoard();
+        showLeaderBoard();
         LB.addName(name, score);
+    }
+
+    public static void showLeaderBoard(){
+        SG.setVisible(false);
+        GF.dispose();
+        LB.setVisible(true);
+    }
+
+    public static void MainPage(){
+        LB.setVisible(false);
+        GF.dispose();
+        SG.setVisible(true);
     }
 }

@@ -8,7 +8,7 @@ public class Level extends JPanel {
     final int BOARD_WIDTH = 240;
     final int BOARD_HEIGHT = 75;
     final int BOARD_Y = 95;
-    int curLevel = 1;
+    private int curLevel = 1;
     File file = new File("nextLevel.wav");
     AudioInputStream audio = AudioSystem.getAudioInputStream(file);
     Clip clip = AudioSystem.getClip();
@@ -56,5 +56,9 @@ public class Level extends JPanel {
         }
 
 
+    }
+
+    public int getLevel() {
+        return curLevel;
     }
 }

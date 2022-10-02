@@ -9,21 +9,27 @@ public class GameThread extends Thread{
 
     @Override
     public void run() {
-        while(true) {
-            while (true) {
+        boolean runner = true;
+        while(runner) {
+            while (runner) {
+                if(ga.endgame){
+                    System.out.println("HI");
+                    runner = false;
+                }
+
                 try {
-                    if (!(!ga.endgame && ga.running && ga.checkLast() && !ga.animation)) break;
+                    if (!(runner && ga.running && ga.checkLast() && !ga.animation)) break;
                 } catch (LineUnavailableException e) {
-                    e.printStackTrace();
+                   return;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                   return;
                 }
 
                 ga.move();
                 try {
                     Thread.sleep(ga.speed);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                   return;
                 }
             }
             System.out.print("");

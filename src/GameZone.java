@@ -16,8 +16,6 @@ public class GameZone extends JPanel  {
     int curX;
     int curY;
     int speed = 500;
-
-
     int mode = 1;
     boolean moveLeft = true;
     boolean moveRight = true;
@@ -45,20 +43,14 @@ public class GameZone extends JPanel  {
         this.addKeyListener(new MyKeyAdapter());
         this.setBorder(BorderFactory.createLineBorder(Color.black, 2));
         this.setBackground(Color.WHITE);
-
-
-        nextShape.chooseShape();
-        createShape();
         colors = new Color[GAME_UNITS_X][GAME_UNITS_Y];
         curLast = new int[GAME_UNITS_X];
-        for (int i = 0; i < GAME_UNITS_X; i++) {
-            curLast[i] = BOARD_HEIGHT;
-        }
         rowsToClean = new boolean[GAME_UNITS_Y];
-        refreshRowsToClean();
         clipClear.open(audioClear);
         clipMode.open(audioMode);
-
+        nextShape.chooseShape();
+        createShape();
+        restartt();
     }
 
     public void paintComponent(Graphics g) {
@@ -99,6 +91,18 @@ public class GameZone extends JPanel  {
                 }
     }
 
+    public void restartt(){
+        running = true;
+        for (int i = 0; i < GAME_UNITS_X; i++) {
+            curLast[i] = BOARD_HEIGHT;
+        }
+        refreshRowsToClean();
+
+        for(int i = 0; i<colors.length;i++)
+            for(int j = 0; j<colors[0].length; j++){
+                colors[i][j] = null;
+            }
+    }
     public void createShape() {
         shape = new Block(nextShape.curShape);
         curX = ((BOARD_WIDTH - shape.length()*UNIT_SIZE)/(2*UNIT_SIZE))*UNIT_SIZE;
@@ -117,7 +121,8 @@ public class GameZone extends JPanel  {
                     if(shape.getY(i,j)<=0) {
                         endgame = true;
                         String name = JOptionPane.showInputDialog("Game Over!\nPlease enter your name.");
-                        Main.endGame(name, score.getScore());
+                       if(!name.equals(""))
+                            Main.endGame(name, score.getScore());
                         return true;
                     }
         return false;
@@ -163,8 +168,8 @@ public class GameZone extends JPanel  {
             if (check == GAME_UNITS_X) {
                 rowsToClean[row/UNIT_SIZE] = true; //CLEAN
                 score.addScore();
-                if (score.getScore() % 100 == 0) {//every 100 point raise the level
-                    speed -= 50;
+                if (score.getScore() % 100 == 0 &&level.getLevel()<=16) {//every 100 point raise the level
+                    speed -= 25;
                     level.addLevel();
                 }
             }
