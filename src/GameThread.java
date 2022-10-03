@@ -13,7 +13,6 @@ public class GameThread extends Thread{
         while(runner) {
             while (runner) {
                 if(ga.endgame){
-                    System.out.println("HI");
                     runner = false;
                 }
 

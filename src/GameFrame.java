@@ -16,7 +16,7 @@ public class GameFrame extends JFrame implements ActionListener {
     final int pausePosY = 170;
     final int mainMenuPosY = 245;
     GameZone gameZone;
-  
+    ImageIcon icon;
     JLabel numberL;
     File startFile = new File("threeTwoOne.wav");
     AudioInputStream audio = AudioSystem.getAudioInputStream(startFile);
@@ -29,7 +29,10 @@ public class GameFrame extends JFrame implements ActionListener {
         this.setSize(SIZE_FRAME, SIZE_FRAME);
         this.setLayout(null);
         this.getContentPane().setBackground(Color.gray);
-
+        //title + image icon
+        icon = new ImageIcon("logo.png");
+        this.setIconImage(icon.getImage());
+        this.setTitle("Tetris");
         //game zone
         gameZone = new GameZone();
         this.add(gameZone, BorderLayout.CENTER);
@@ -103,6 +106,7 @@ public class GameFrame extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        Main.playButton();
             if(e.getSource()==pause) {
                 if(gameZone.endgame || gameZone.animation) //if game ended OR animation is on
                     return;

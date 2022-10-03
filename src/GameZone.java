@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 
 public class GameZone extends JPanel  {
-
     final int BOARD_WIDTH = 300;
     final int BOARD_HEIGHT = 540;
     final int UNIT_SIZE = 30;
@@ -35,6 +34,9 @@ public class GameZone extends JPanel  {
     File fileClear = new File("clear.wav");
     AudioInputStream audioClear = AudioSystem.getAudioInputStream(fileClear);
     Clip clipClear = AudioSystem.getClip();
+    File fileDeath = new File("death.wav");
+    AudioInputStream audioDeath = AudioSystem.getAudioInputStream(fileDeath);
+    Clip clipDeath = AudioSystem.getClip();
 
     GameZone() throws UnsupportedAudioFileException, LineUnavailableException, IOException {
         this.setLayout(new BorderLayout());
@@ -48,6 +50,7 @@ public class GameZone extends JPanel  {
         rowsToClean = new boolean[GAME_UNITS_Y];
         clipClear.open(audioClear);
         clipMode.open(audioMode);
+        clipDeath.open(audioDeath);
         nextShape.chooseShape();
         createShape();
         restartt();
@@ -120,6 +123,7 @@ public class GameZone extends JPanel  {
                 if (shape.checkNull(i, j))
                     if(shape.getY(i,j)<=0) {
                         endgame = true;
+                        clipDeath.start();
                         String name = JOptionPane.showInputDialog("Game Over!\nPlease enter your name.");
                        if(!name.equals(""))
                             Main.endGame(name, score.getScore());

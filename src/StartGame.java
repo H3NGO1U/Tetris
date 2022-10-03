@@ -14,7 +14,12 @@ public class StartGame extends JFrame implements ActionListener {
     JButton strBtn;
     JButton LdrBrd;
     JButton buttons[];
+    ImageIcon icon;
     public StartGame(){
+        //icon
+        icon = new ImageIcon("logo.png");
+        setIconImage(icon.getImage());
+        setTitle("Tetris");
         //header
         tetrisL = new JLabel("Tetris");
         tetrisL.setFont(new Font("Monospaced", Font.BOLD, 100));
@@ -60,10 +65,12 @@ public class StartGame extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource()==strBtn){
+            Main.playButton();
             this.dispose();
             SwingUtilities.invokeLater(Main::Start);
         }
         if(e.getSource()==LdrBrd){
+            Main.playButton();
             SwingUtilities.invokeLater(Main::showLeaderBoard);
         }
     }
