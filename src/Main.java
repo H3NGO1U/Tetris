@@ -58,7 +58,7 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        GF.start();
     }
     public static void endGame(String name, int score){
         showLeaderBoard();
