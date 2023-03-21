@@ -9,7 +9,7 @@ public class Main {
     static LeaderBoard LB;
     static File file = new File("clack.wav");
     static AudioInputStream audio;
-    static Clip clip;
+    private static Clip clip;
     public static void main(String[] args){
         try {
             audio = AudioSystem.getAudioInputStream(file);
